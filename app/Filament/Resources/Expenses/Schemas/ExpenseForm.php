@@ -23,6 +23,7 @@ class ExpenseForm
                     )
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->trip->name . ' - Day ' . $record->day_number)
                     ->searchable()
+                    ->preload()
                     ->required(),
                 TextInput::make('title')
                     ->required()
@@ -33,9 +34,16 @@ class ExpenseForm
                     ->numeric()
                     ->required()
                     ->prefix('$'),
-                TextInput::make('currency')
-                    ->maxLength(3)
-                    ->placeholder('USD'),
+                Select::make('currency')
+                    ->options([
+                        'USD' => 'USD',
+                        'IDR' => 'IDR',
+                        'SGD' => 'SGD',
+                        'RMB' => 'RMB',
+                        'KIP' => 'KIP',
+                    ])
+                    ->default('USD')
+                    ->searchable(),
                 DateTimePicker::make('spent_at')
                     ->label('Spent at'),
                 Textarea::make('notes')

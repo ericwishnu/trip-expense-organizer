@@ -6,6 +6,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -30,9 +31,16 @@ class ExpensesRelationManager extends RelationManager
                     ->numeric()
                     ->required()
                     ->prefix('$'),
-                TextInput::make('currency')
-                    ->maxLength(3)
-                    ->placeholder('USD'),
+                Select::make('currency')
+                    ->options([
+                        'USD' => 'USD',
+                        'IDR' => 'IDR',
+                        'SGD' => 'SGD',
+                        'RMB' => 'RMB',
+                        'KIP' => 'KIP',
+                    ])
+                    ->default(fn (RelationManager $livewire) => $livewire->getOwnerRecord()?->trip?->currency ?? 'USD')
+                    ->searchable(),
                 DateTimePicker::make('spent_at')
                     ->label('Spent at'),
                 Textarea::make('notes')

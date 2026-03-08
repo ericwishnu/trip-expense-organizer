@@ -21,6 +21,7 @@ class TripDayForm
                         modifyQueryUsing: fn ($query) => $query->where('user_id', auth()->id())
                     )
                     ->searchable()
+                    ->preload()
                     ->required(),
                 TextInput::make('day_number')
                     ->label('Day number')

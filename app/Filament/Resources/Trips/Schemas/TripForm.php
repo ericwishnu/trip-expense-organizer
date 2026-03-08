@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Trips\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
@@ -26,11 +27,17 @@ class TripForm
                         ->label('End date'),
                 ]),
                 Grid::make(2)->schema([
-                    TextInput::make('currency')
-                        ->maxLength(3)
+                    Select::make('currency')
+                        ->options([
+                            'USD' => 'USD',
+                            'IDR' => 'IDR',
+                            'SGD' => 'SGD',
+                            'RMB' => 'RMB',
+                            'KIP' => 'KIP',
+                        ])
                         ->default('USD')
                         ->required()
-                        ->helperText('3-letter currency code, e.g. USD'),
+                        ->searchable(),
                     TextInput::make('budget')
                         ->numeric()
                         ->prefix('$')
