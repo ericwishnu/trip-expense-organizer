@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\Trips\Pages;
 
 use App\Filament\Resources\Trips\TripResource;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TripSummary extends Page
 {
@@ -22,6 +25,16 @@ class TripSummary extends Page
     public float $total = 0.0;
 
     public string $currency = 'USD';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('Export Expenses')
+                ->action('export')
+                ->icon('heroicon-o-arrow-down-tray'),
+        ];
+    }
 
     public function mount(int|string $record): void
     {
@@ -72,5 +85,65 @@ class TripSummary extends Page
             })
             ->sortByDesc('amount')
             ->values();
+    }
+
+    public function export(): StreamedResponse
+    {
+        abort_unless(TripResource::canView($this->record), 403);
+
+        $trip = $this->record->loadMissing(['days.expenses']);
+
+        $fileName = Str::of($trip->name ?: 'trip')
+            ->slug('-')
+            ->append('-expenses.csv')
+            ->toString();
+
+        return response()->streamDownload(function () use ($trip) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Trip',
+                'Day #',
+                'Day Date',
+                'Day Title',
+                'Expense Title',
+                'Category',
+                'Amount',
+                'Currency',
+                'Spent At',
+                'Notes',
+            ]);
+
+            $days = $trip->days->sortBy('day_number');
+
+            foreach ($days as $day) {
+                foreach ($day->expenses as $expense) {
+                    $dayDate = $day->date instanceof \Carbon\CarbonInterface
+                        ? $day->date->toDateString()
+                        : (string) $day->date;
+
+                    $spentAt = $expense->spent_at instanceof \Carbon\CarbonInterface
+                        ? $expense->spent_at->toDateTimeString()
+                        : (string) $expense->spent_at;
+
+                    fputcsv($handle, [
+                        $trip->name,
+                        $day->day_number,
+                        $dayDate,
+                        $day->title,
+                        $expense->title,
+                        $expense->category,
+                        $expense->amount,
+                        $expense->currency ?? $trip->currency ?? 'USD',
+                        $spentAt,
+                        $expense->notes,
+                    ]);
+                }
+            }
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 }
