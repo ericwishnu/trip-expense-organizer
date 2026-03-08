@@ -5,16 +5,24 @@ namespace App\Filament\Widgets;
 use App\Models\Trip;
 use Filament\Widgets\ChartWidget;
 
-class TripCategoryChart extends ChartWidget
+class LatestTripCategoryChart extends ChartWidget
 {
-    // protected ?string $heading = 'Spending by category';
+    protected ?string $heading = 'Latest trip spending by category';
+    protected static ?int $sort = 3;
+    public static function canView(): bool
+    {
+        $trip = Trip::query()
+            ->where('user_id', auth()->id())
+            ->latest('created_at')
+            ->with(['days.expenses'])
+            ->first();
 
-    protected static bool $isDiscovered = false;
+        if (! $trip) {
+            return false;
+        }
 
-    protected int | string | array $columnSpan = 'full';
-
-    public ?int $recordId = null;
-
+        return $trip->days->flatMap(fn($day) => $day->expenses)->isNotEmpty();
+    }
     protected function getType(): string
     {
         return 'doughnut';
@@ -22,7 +30,13 @@ class TripCategoryChart extends ChartWidget
 
     protected function getData(): array
     {
-        if (! $this->recordId) {
+        $trip = Trip::query()
+            ->where('user_id', auth()->id())
+            ->latest('created_at')
+            ->with(['days.expenses'])
+            ->first();
+
+        if (! $trip) {
             return [
                 'labels' => [],
                 'datasets' => [
@@ -34,13 +48,7 @@ class TripCategoryChart extends ChartWidget
             ];
         }
 
-        $trip = Trip::query()
-            ->where('user_id', auth()->id())
-            ->findOrFail($this->recordId);
-
-        $trip->loadMissing(['days.expenses']);
-
-        $expenses = $trip->days->flatMap(fn ($day) => $day->expenses);
+        $expenses = $trip->days->flatMap(fn($day) => $day->expenses);
 
         $groups = $expenses->groupBy(function ($expense) {
             $category = trim((string) $expense->category);
@@ -49,7 +57,7 @@ class TripCategoryChart extends ChartWidget
         });
 
         $labels = $groups->keys()->values()->all();
-        $data = $groups->map(fn ($items) => $items->sum('amount'))->values()->all();
+        $data = $groups->map(fn($items) => $items->sum('amount'))->values()->all();
 
         $colors = [
             '#f59e0b',
@@ -63,7 +71,7 @@ class TripCategoryChart extends ChartWidget
         ];
 
         $backgrounds = collect($labels)
-            ->map(fn ($_, $index) => $colors[$index % count($colors)])
+            ->map(fn($_, $index) => $colors[$index % count($colors)])
             ->all();
 
         return [
