@@ -9,6 +9,58 @@ class LatestTripCategoryChart extends ChartWidget
 {
     protected ?string $heading = 'Latest trip spending by category';
     protected static ?int $sort = 3;
+
+    public ?string $filter = null;
+
+    public function mount(): void
+    {
+        $trip = Trip::query()
+            ->where('user_id', auth()->id())
+            ->latest('created_at')
+            ->with(['days.expenses'])
+            ->first();
+
+        if (! $trip) {
+            return;
+        }
+
+        $availableCurrencies = $trip->days
+            ->flatMap(fn ($day) => $day->expenses)
+            ->map(fn ($expense) => $expense->currency ?? $trip->currency ?? 'USD')
+            ->unique()
+            ->values();
+
+        $defaultCurrency = $trip->currency ?? $availableCurrencies->first();
+
+        $this->filter = $availableCurrencies->contains($defaultCurrency)
+            ? $defaultCurrency
+            : $availableCurrencies->first();
+    }
+
+    protected function getFilters(): ?array
+    {
+        $trip = Trip::query()
+            ->where('user_id', auth()->id())
+            ->latest('created_at')
+            ->with(['days.expenses'])
+            ->first();
+
+        if (! $trip) {
+            return null;
+        }
+
+        $currencies = $trip->days
+            ->flatMap(fn ($day) => $day->expenses)
+            ->map(fn ($expense) => $expense->currency ?? $trip->currency ?? 'USD')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return collect($currencies)
+            ->mapWithKeys(fn ($currency) => [$currency => $currency])
+            ->all();
+    }
     public static function canView(): bool
     {
         $trip = Trip::query()
@@ -50,19 +102,28 @@ class LatestTripCategoryChart extends ChartWidget
 
         $expenses = $trip->days->flatMap(fn($day) => $day->expenses);
 
+        $availableCurrencies = $expenses
+            ->map(fn ($expense) => $expense->currency ?? $trip->currency ?? 'USD')
+            ->unique()
+            ->values();
+
+        $selectedCurrency = $this->filter ?: $availableCurrencies->first();
+
+        $expenses = $expenses->filter(fn ($expense) => ($expense->currency ?? $trip->currency ?? 'USD') === $selectedCurrency);
+
         $groups = $expenses->groupBy(function ($expense) use ($trip) {
             $currency = $expense->currency ?? $trip->currency ?? 'USD';
             $category = trim((string) $expense->category);
 
             $category = $category !== '' ? $category : 'Uncategorized';
 
-            return $currency . '||' . $category;
+            return $category . '||' . $currency;
         });
 
         $labels = $groups->keys()->map(function ($key) {
-            [$currency, $category] = explode('||', $key);
+            [$category] = explode('||', $key);
 
-            return $category . ' (' . $currency . ')';
+            return $category;
         })->values()->all();
         $data = $groups->map(fn($items) => $items->sum('amount'))->values()->all();
 
