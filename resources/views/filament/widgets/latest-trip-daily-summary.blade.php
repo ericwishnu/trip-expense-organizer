@@ -30,7 +30,9 @@
                             </div>
                         </div>
                         <div class="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                            
+                            <p class="font-medium text-gray-900 dark:text-gray-100">
+                                {{ $day['title'] ?? '—' }}
+                            </p>
                             <p class="text-xs text-gray-500">Expenses: {{ $day['count'] }}</p>
                         </div>
                     </div>
