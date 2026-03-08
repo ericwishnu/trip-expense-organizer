@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Description
+    |--------------------------------------------------------------------------
+    |
+    | This value is the short description of your application. It will be used
+    | for meta tags when sharing links or displaying basic app information.
+    |
+    */
+
+    'description' => env('APP_DESCRIPTION', 'Track trips and expenses in one place.'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

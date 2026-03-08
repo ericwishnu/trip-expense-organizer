@@ -10,6 +10,8 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use App\Filament\Widgets\LatestTripStats;
@@ -24,6 +26,14 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_START,
+            fn () => view('filament.hooks.share-meta'),
+        );
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
