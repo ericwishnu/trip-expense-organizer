@@ -124,12 +124,6 @@
                 @livewire(\App\Filament\Widgets\TripCategoryChart::class, ['recordId' => $record->id])
             </x-filament::section>
         </div>
-        <div class="col-span-12 lg:col-span-6">
-            <x-filament::section heading="More details">
-                <div class="text-sm text-gray-500">
-                    Add more widgets here.
-                </div>
-            </x-filament::section>
-        </div>
+        
     </div>
 </x-filament-panels::page>
