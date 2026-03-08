@@ -42,13 +42,20 @@ class TripCategoryChart extends ChartWidget
 
         $expenses = $trip->days->flatMap(fn ($day) => $day->expenses);
 
-        $groups = $expenses->groupBy(function ($expense) {
+        $groups = $expenses->groupBy(function ($expense) use ($trip) {
+            $currency = $expense->currency ?? $trip->currency ?? 'USD';
             $category = trim((string) $expense->category);
 
-            return $category !== '' ? $category : 'Uncategorized';
+            $category = $category !== '' ? $category : 'Uncategorized';
+
+            return $currency . '||' . $category;
         });
 
-        $labels = $groups->keys()->values()->all();
+        $labels = $groups->keys()->map(function ($key) {
+            [$currency, $category] = explode('||', $key);
+
+            return $category . ' (' . $currency . ')';
+        })->values()->all();
         $data = $groups->map(fn ($items) => $items->sum('amount'))->values()->all();
 
         $colors = [

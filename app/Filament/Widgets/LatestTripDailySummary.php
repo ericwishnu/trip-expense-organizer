@@ -16,8 +16,6 @@ class LatestTripDailySummary extends Widget
 
     public string $tripName = '';
 
-    public string $currency = 'USD';
-
     public function mount(): void
     {
         $trip = Trip::query()
@@ -32,17 +30,22 @@ class LatestTripDailySummary extends Widget
         }
 
         $this->tripName = $trip->name;
-        $this->currency = $trip->currency ?? 'USD';
-
         $this->days = $trip->days
             ->sortBy('day_number')
             ->values()
-            ->map(fn($day) => [
+            ->map(function ($day) use ($trip) {
+                $totals = $day->expenses
+                    ->groupBy(fn ($expense) => $expense->currency ?? $trip->currency ?? 'USD')
+                    ->map(fn ($expenses) => $expenses->sum('amount'))
+                    ->sortKeys();
+
+                return [
                 'day_number' => $day->day_number,
                 'date' => $day->date,
                 'title' => $day->title,
-                'total' => $day->expenses->sum('amount'),
+                'totals' => $totals,
                 'count' => $day->expenses->count(),
-            ]);
+                ];
+            });
     }
 }

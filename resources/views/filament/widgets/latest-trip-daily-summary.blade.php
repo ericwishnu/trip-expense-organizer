@@ -18,9 +18,15 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-xs uppercase tracking-wider text-gray-500">Total</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $currency }} {{ number_format($day['total'], 2) }}
-                                </p>
+                                <div class="space-y-1">
+                                    @forelse ($day['totals'] as $currency => $amount)
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            {{ $currency }} {{ number_format($amount, 2) }}
+                                        </p>
+                                    @empty
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">—</p>
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
                         <div class="mt-3 text-sm text-gray-600 dark:text-gray-300">
@@ -57,7 +63,13 @@
                                     {{ $day['count'] }}
                                 </td>
                                 <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
-                                    {{ $currency }} {{ number_format($day['total'], 2) }}
+                                    <div class="space-y-1">
+                                        @forelse ($day['totals'] as $currency => $amount)
+                                            <div>{{ $currency }} {{ number_format($amount, 2) }}</div>
+                                        @empty
+                                            <div>—</div>
+                                        @endforelse
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

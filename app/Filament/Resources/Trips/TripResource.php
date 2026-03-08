@@ -6,6 +6,7 @@ use App\Filament\Resources\Trips\Pages\CreateTrip;
 use App\Filament\Resources\Trips\Pages\EditTrip;
 use App\Filament\Resources\Trips\Pages\ListTrips;
 use App\Filament\Resources\Trips\Pages\TripSummary;
+use App\Filament\Resources\Trips\RelationManagers\TripDaysRelationManager;
 use App\Filament\Resources\Trips\Schemas\TripForm;
 use App\Filament\Resources\Trips\Tables\TripsTable;
 use App\Models\Trip;
@@ -37,7 +38,7 @@ class TripResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TripDaysRelationManager::class,
         ];
     }
 

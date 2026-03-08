@@ -22,9 +22,7 @@ class TripSummary extends Page
 
     public Collection $categorySummaries;
 
-    public float $total = 0.0;
-
-    public string $currency = 'USD';
+    public Collection $totalsByCurrency;
 
     protected function getHeaderActions(): array
     {
@@ -44,40 +42,51 @@ class TripSummary extends Page
 
         $this->record->loadMissing(['days.expenses']);
 
-        $this->currency = $this->record->currency ?? 'USD';
+        $currencyResolver = fn ($expense) => $expense->currency
+            ?? $this->record->currency
+            ?? 'USD';
 
-        $this->total = 0.0;
+        $allExpenses = $this->record->days
+            ->flatMap(fn ($day) => $day->expenses);
+
+        $this->totalsByCurrency = $allExpenses
+            ->groupBy($currencyResolver)
+            ->map(fn ($expenses) => $expenses->sum('amount'))
+            ->sortKeys();
 
         $this->daySummaries = $this->record->days
             ->sortBy('day_number')
             ->values()
-            ->map(function ($day) {
-                $dayTotal = $day->expenses->sum('amount');
-
-                $this->total += $dayTotal;
+            ->map(function ($day) use ($currencyResolver) {
+                $totals = $day->expenses
+                    ->groupBy($currencyResolver)
+                    ->map(fn ($expenses) => $expenses->sum('amount'))
+                    ->sortKeys();
 
                 return [
                     'day_number' => $day->day_number,
                     'date' => $day->date,
                     'title' => $day->title,
-                    'total' => $dayTotal,
+                    'totals' => $totals,
                     'count' => $day->expenses->count(),
                 ];
             });
 
-        $allExpenses = $this->record->days
-            ->flatMap(fn ($day) => $day->expenses);
-
         $this->categorySummaries = $allExpenses
-            ->groupBy(function ($expense) {
+            ->groupBy(function ($expense) use ($currencyResolver) {
+                $currency = $currencyResolver($expense);
                 $category = trim((string) $expense->category);
 
-                return $category !== '' ? $category : 'Uncategorized';
+                $category = $category !== '' ? $category : 'Uncategorized';
+
+                return $currency . '||' . $category;
             })
-            ->map(function ($expenses, $category) {
+            ->map(function ($expenses, $key) {
+                [$currency, $category] = explode('||', $key);
                 $amount = $expenses->sum('amount');
 
                 return [
+                    'currency' => $currency,
                     'category' => $category,
                     'amount' => $amount,
                     'count' => $expenses->count(),

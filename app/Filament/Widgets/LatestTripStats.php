@@ -24,14 +24,23 @@ class LatestTripStats extends StatsOverviewWidget
             ];
         }
 
-        $total = $trip->days->flatMap(fn ($day) => $day->expenses)->sum('amount');
-        $currency = $trip->currency ?? 'USD';
+        $totalsByCurrency = $trip->days
+            ->flatMap(fn ($day) => $day->expenses)
+            ->groupBy(fn ($expense) => $expense->currency ?? $trip->currency ?? 'USD')
+            ->map(fn ($expenses) => $expenses->sum('amount'))
+            ->sortKeys();
+
+        $totalLabel = $totalsByCurrency->isEmpty()
+            ? '—'
+            : $totalsByCurrency
+                ->map(fn ($amount, $currency) => $currency . ' ' . number_format($amount, 2))
+                ->implode(' • ');
         $days = $trip->days->count();
 
         return [
             Stat::make('Latest trip', $trip->name)
                 ->description($trip->destination ?: 'No destination'),
-            Stat::make('Total spent', $currency . ' ' . number_format($total, 2))
+            Stat::make('Total spent', $totalLabel)
                 ->description($days . ' days'),
         ];
     }

@@ -34,6 +34,9 @@ class ExpensesTable
                 TextColumn::make('amount')
                     ->money(fn ($record) => $record->currency ?? 'USD')
                     ->sortable(),
+                TextColumn::make('currency')
+                    ->label('Currency')
+                    ->toggleable(),
                 TextColumn::make('category')
                     ->toggleable(),
                 TextColumn::make('spent_at')
