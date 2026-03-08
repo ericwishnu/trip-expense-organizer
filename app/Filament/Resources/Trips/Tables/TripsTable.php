@@ -13,6 +13,12 @@ class TripsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
+            ->contentGrid([
+                'sm' => 1,
+                'md' => 2,
+            ])
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('name')
                     ->searchable()

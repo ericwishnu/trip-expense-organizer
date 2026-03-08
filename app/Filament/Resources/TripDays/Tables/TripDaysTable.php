@@ -13,6 +13,12 @@ class TripDaysTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
+            ->contentGrid([
+                'sm' => 1,
+                'md' => 2,
+            ])
+            ->defaultSort('date', 'desc')
             ->columns([
                 TextColumn::make('trip.name')
                     ->label('Trip')

@@ -43,6 +43,12 @@ class ExpensesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
+            ->contentGrid([
+                'sm' => 1,
+                'md' => 2,
+            ])
+            ->defaultSort('spent_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
