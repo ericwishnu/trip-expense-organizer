@@ -33,6 +33,28 @@ class LatestTripStats extends StatsOverviewWidget
             ->map(fn ($expenses) => $expenses->sum('amount'))
             ->sortKeys();
 
+        $baseCurrency = $trip->currency ?? 'USD';
+        $baseTotal = 0.0;
+        $baseTotalAvailable = false;
+
+        foreach ($trip->days->flatMap(fn ($day) => $day->expenses) as $expense) {
+            $currency = $expense->currency ?? $trip->currency ?? 'USD';
+            $rate = $currency === $baseCurrency
+                ? 1
+                : ($expense->conversion_rate ?? $trip->getExchangeRateFor($currency));
+
+            if ($rate === null) {
+                continue;
+            }
+
+            $baseTotalAvailable = true;
+            $baseTotal += ((float) $expense->amount) * (float) $rate;
+        }
+
+        $baseTotalLabel = $baseTotalAvailable
+            ? $baseCurrency . ' ' . number_format($baseTotal, 2)
+            : '—';
+
         $totalLabel = $totalsByCurrency->isEmpty()
             ? '—'
             : $totalsByCurrency
@@ -45,6 +67,8 @@ class LatestTripStats extends StatsOverviewWidget
                 ->description($trip->destination ?: 'No destination'),
             Stat::make('Total spent', $totalLabel)
                 ->description($days . ' days'),
+            Stat::make('Total (base)', $baseTotalLabel)
+                ->description($baseCurrency . ' base'),
         ];
     }
 }

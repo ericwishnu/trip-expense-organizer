@@ -34,6 +34,16 @@
                     @endif
                 </div>
                 <div class="rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-950">
+                    <p class="text-xs uppercase tracking-wider text-gray-500">Total ({{ $baseCurrency }})</p>
+                    @if ($baseTotal === null)
+                        <p class="text-xl font-semibold">—</p>
+                    @else
+                        <p class="text-xl font-semibold">
+                            {{ $baseCurrency }} {{ number_format($baseTotal, 2) }}
+                        </p>
+                    @endif
+                </div>
+                <div class="rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-950">
                     <p class="text-xs uppercase tracking-wider text-gray-500">Trip days</p>
                     <p class="text-xl font-semibold">
                         {{ $daySummaries->count() }}
@@ -71,6 +81,9 @@
                                         <p class="text-sm font-semibold">—</p>
                                     @endforelse
                                 </div>
+                                <p class="mt-2 text-xs text-gray-500">
+                                    Base: {{ $baseCurrency }} {{ $day['base_total'] !== null ? number_format($day['base_total'], 2) : '—' }}
+                                </p>
                             </div>
                         </div>
                         <div class="mt-3 text-sm text-gray-600 dark:text-gray-300">
@@ -162,6 +175,9 @@
                                         @empty
                                             <div>—</div>
                                         @endforelse
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-500">
+                                        Base: {{ $baseCurrency }} {{ $day['base_total'] !== null ? number_format($day['base_total'], 2) : '—' }}
                                     </div>
                                 </td>
                             </tr>

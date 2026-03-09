@@ -31,14 +31,56 @@ class TripShareController extends Controller
             ->map(fn ($expenses) => $expenses->sum('amount'))
             ->sortKeys();
 
+        $baseCurrency = $trip->currency ?? 'USD';
+        $rateResolver = function ($expense) use ($trip): ?string {
+            $currency = $expense->currency ?? $trip->currency ?? 'USD';
+
+            if ($currency === ($trip->currency ?? 'USD')) {
+                return '1';
+            }
+
+            return $expense->conversion_rate
+                ?? $trip->getExchangeRateFor($currency);
+        };
+
+        $baseTotal = 0.0;
+        $baseTotalAvailable = false;
+
+        foreach ($allExpenses as $expense) {
+            $rate = $rateResolver($expense);
+
+            if ($rate === null) {
+                continue;
+            }
+
+            $baseTotalAvailable = true;
+            $baseTotal += ((float) $expense->amount) * (float) $rate;
+        }
+
+        $baseTotal = $baseTotalAvailable ? $baseTotal : null;
+
         $daySummaries = $trip->days
             ->sortBy('day_number')
             ->values()
-            ->map(function ($day) use ($currencyResolver) {
+            ->map(function ($day) use ($currencyResolver, $rateResolver) {
                 $totals = $day->expenses
                     ->groupBy($currencyResolver)
                     ->map(fn ($expenses) => $expenses->sum('amount'))
                     ->sortKeys();
+
+                $baseDayTotal = 0.0;
+                $baseDayAvailable = false;
+
+                foreach ($day->expenses as $expense) {
+                    $rate = $rateResolver($expense);
+
+                    if ($rate === null) {
+                        continue;
+                    }
+
+                    $baseDayAvailable = true;
+                    $baseDayTotal += ((float) $expense->amount) * (float) $rate;
+                }
 
                 $expenses = $day->expenses
                     ->map(function ($expense) use ($currencyResolver) {
@@ -57,6 +99,7 @@ class TripShareController extends Controller
                     'title' => $day->title,
                     'totals' => $totals,
                     'count' => $day->expenses->count(),
+                    'base_total' => $baseDayAvailable ? $baseDayTotal : null,
                     'expenses' => $expenses,
                 ];
             });
@@ -64,6 +107,8 @@ class TripShareController extends Controller
         return view('public.trip-summary', [
             'trip' => $trip,
             'totalsByCurrency' => $totalsByCurrency,
+            'baseCurrency' => $baseCurrency,
+            'baseTotal' => $baseTotal,
             'daySummaries' => $daySummaries,
         ]);
     }

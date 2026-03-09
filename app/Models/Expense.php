@@ -13,6 +13,7 @@ class Expense extends Model
         'category',
         'amount',
         'currency',
+        'conversion_rate',
         'spent_at',
         'notes',
     ];
@@ -21,6 +22,7 @@ class Expense extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'conversion_rate' => 'decimal:6',
             'spent_at' => 'datetime',
         ];
     }

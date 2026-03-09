@@ -24,6 +24,10 @@ class TripSummary extends Page
 
     public Collection $totalsByCurrency;
 
+    public string $baseCurrency = 'USD';
+
+    public ?float $baseTotal = null;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -42,6 +46,8 @@ class TripSummary extends Page
 
         $this->record->loadMissing(['days.expenses']);
 
+        $this->baseCurrency = $this->record->currency ?? 'USD';
+
         $currencyResolver = fn ($expense) => $expense->currency
             ?? $this->record->currency
             ?? 'USD';
@@ -54,14 +60,55 @@ class TripSummary extends Page
             ->map(fn ($expenses) => $expenses->sum('amount'))
             ->sortKeys();
 
+        $rateResolver = function ($expense): ?string {
+            $currency = $expense->currency ?? $this->record->currency ?? 'USD';
+
+            if ($currency === ($this->record->currency ?? 'USD')) {
+                return '1';
+            }
+
+            return $expense->conversion_rate
+                ?? $this->record->getExchangeRateFor($currency);
+        };
+
+        $baseTotal = 0.0;
+        $baseTotalAvailable = false;
+
+        foreach ($allExpenses as $expense) {
+            $rate = $rateResolver($expense);
+
+            if ($rate === null) {
+                continue;
+            }
+
+            $baseTotalAvailable = true;
+            $baseTotal += ((float) $expense->amount) * (float) $rate;
+        }
+
+        $this->baseTotal = $baseTotalAvailable ? $baseTotal : null;
+
         $this->daySummaries = $this->record->days
             ->sortBy('day_number')
             ->values()
-            ->map(function ($day) use ($currencyResolver) {
+            ->map(function ($day) use ($currencyResolver, $rateResolver) {
                 $totals = $day->expenses
                     ->groupBy($currencyResolver)
                     ->map(fn ($expenses) => $expenses->sum('amount'))
                     ->sortKeys();
+
+                $baseDayTotal = 0.0;
+                $baseDayAvailable = false;
+
+                foreach ($day->expenses as $expense) {
+                    $rate = $rateResolver($expense);
+
+                    if ($rate === null) {
+                        continue;
+                    }
+
+                    $baseDayAvailable = true;
+                    $baseDayTotal += ((float) $expense->amount) * (float) $rate;
+                }
 
                 $expenses = $day->expenses
                     ->map(function ($expense) use ($currencyResolver) {
@@ -80,6 +127,7 @@ class TripSummary extends Page
                     'title' => $day->title,
                     'totals' => $totals,
                     'count' => $day->expenses->count(),
+                    'base_total' => $baseDayAvailable ? $baseDayTotal : null,
                     'expenses' => $expenses,
                 ];
             });

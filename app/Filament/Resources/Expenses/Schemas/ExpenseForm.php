@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Expenses\Schemas;
 
+use App\Models\TripDay;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Schemas\Schema;
 
 class ExpenseForm
@@ -27,6 +30,30 @@ class ExpenseForm
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->trip->name . ' - Day ' . $record->day_number)
                     ->searchable()
                     ->preload()
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, Get $get, $state): void {
+                        if (! $state) {
+                            return;
+                        }
+
+                        $tripDay = TripDay::query()
+                            ->with('trip.exchangeRates')
+                            ->find($state);
+
+                        if (! $tripDay) {
+                            return;
+                        }
+
+                        $tripCurrency = $tripDay->trip?->currency;
+                        if ($tripCurrency) {
+                            $set('currency', $tripCurrency);
+                        }
+
+                        $currency = $get('currency') ?? $tripCurrency;
+                        if ($currency) {
+                            $set('conversion_rate', $tripDay->trip?->getExchangeRateFor($currency));
+                        }
+                    })
                     ->required(),
                 TextInput::make('title')
                     ->required()
@@ -63,7 +90,28 @@ class ExpenseForm
                         'VND' => 'VND',
                     ])
                     ->default('USD')
-                    ->searchable(),
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, Get $get, $state): void {
+                        $tripDayId = $get('trip_day_id');
+                        if (! $tripDayId) {
+                            return;
+                        }
+
+                        $tripDay = TripDay::query()
+                            ->with('trip.exchangeRates')
+                            ->find($tripDayId);
+
+                        if (! $tripDay) {
+                            return;
+                        }
+
+                        $set('conversion_rate', $tripDay->trip?->getExchangeRateFor($state));
+                    }),
+                TextInput::make('conversion_rate')
+                    ->label('Conversion rate to trip currency')
+                    ->numeric()
+                    ->helperText('Optional. Enter 1 expense currency = ? trip currency'),
                 DateTimePicker::make('spent_at')
                     ->label('Spent at'),
                 Textarea::make('notes')

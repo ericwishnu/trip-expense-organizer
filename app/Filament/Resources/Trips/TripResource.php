@@ -10,6 +10,7 @@ use App\Filament\Resources\Trips\RelationManagers\TripDaysRelationManager;
 use App\Filament\Resources\Trips\RelationManagers\TripInvitesRelationManager;
 use App\Filament\Resources\Trips\RelationManagers\TripCollaboratorsRelationManager;
 use App\Filament\Resources\Trips\RelationManagers\TripShareLinksRelationManager;
+use App\Filament\Resources\Trips\RelationManagers\TripExchangeRatesRelationManager;
 use App\Filament\Resources\Trips\Schemas\TripForm;
 use App\Filament\Resources\Trips\Tables\TripsTable;
 use App\Models\Trip;
@@ -45,6 +46,7 @@ class TripResource extends Resource
             TripCollaboratorsRelationManager::class,
             TripInvitesRelationManager::class,
             TripShareLinksRelationManager::class,
+            TripExchangeRatesRelationManager::class,
         ];
     }
 

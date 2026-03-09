@@ -79,4 +79,21 @@ class Trip extends Model
     {
         return $this->hasMany(TripShareLink::class);
     }
+
+    public function exchangeRates(): HasMany
+    {
+        return $this->hasMany(TripExchangeRate::class);
+    }
+
+    public function getExchangeRateFor(string $currency): ?string
+    {
+        if (($this->currency ?? null) === $currency) {
+            return '1';
+        }
+
+        $rate = $this->exchangeRates
+            ->firstWhere('currency', $currency);
+
+        return $rate?->rate !== null ? (string) $rate->rate : null;
+    }
 }

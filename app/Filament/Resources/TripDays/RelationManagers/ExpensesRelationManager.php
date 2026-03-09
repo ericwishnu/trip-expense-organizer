@@ -9,6 +9,8 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -55,7 +57,22 @@ class ExpensesRelationManager extends RelationManager
                         'VND' => 'VND',
                     ])
                     ->default(fn (RelationManager $livewire) => $livewire->getOwnerRecord()?->trip?->currency ?? 'USD')
-                    ->searchable(),
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, RelationManager $livewire, $state): void {
+                        $trip = $livewire->getOwnerRecord()?->trip;
+
+                        if (! $trip) {
+                            return;
+                        }
+
+                        $trip->loadMissing('exchangeRates');
+                        $set('conversion_rate', $trip->getExchangeRateFor($state));
+                    }),
+                TextInput::make('conversion_rate')
+                    ->label('Conversion rate to trip currency')
+                    ->numeric()
+                    ->helperText('Optional. Enter 1 expense currency = ? trip currency'),
                 DateTimePicker::make('spent_at')
                     ->label('Spent at'),
                 Textarea::make('notes')
