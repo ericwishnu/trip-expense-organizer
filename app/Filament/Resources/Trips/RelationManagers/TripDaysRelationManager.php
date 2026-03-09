@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Trips\RelationManagers;
 
+use App\Filament\Resources\TripDays\TripDayResource;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -47,6 +48,7 @@ class TripDaysRelationManager extends RelationManager
                 'md' => 2,
             ])
             ->defaultSort('day_number')
+            ->recordUrl(fn ($record) => TripDayResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('day_number')
                     ->label('Day')

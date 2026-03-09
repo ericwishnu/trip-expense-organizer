@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Trips\Tables;
 
+use App\Filament\Resources\Trips\TripResource;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,6 +20,7 @@ class TripsTable
                 'md' => 2,
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn ($record) => TripResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
