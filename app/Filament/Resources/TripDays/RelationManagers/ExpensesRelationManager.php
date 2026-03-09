@@ -26,6 +26,20 @@ class ExpensesRelationManager extends RelationManager
                     ->required()
                     ->maxLength(255),
                 TextInput::make('category')
+                    ->datalist([
+                        'Food',
+                        'Transport',
+                        'Lodging',
+                        'Activities',
+                        'Shopping',
+                        'Groceries',
+                        'Tips',
+                        'Fees',
+                        'Tickets',
+                        'Gifts',
+                        'Other',
+                    ])
+                    ->placeholder('Select or type category')
                     ->maxLength(100),
                 TextInput::make('amount')
                     ->numeric()

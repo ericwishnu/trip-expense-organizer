@@ -32,6 +32,22 @@ class ExpenseForm
                     ->required()
                     ->maxLength(255),
                 TextInput::make('category')
+                    ->datalist([
+                        'F&B',
+                        'Transport',
+                        'Accommodation',
+                        'Activities',
+                        'Entertainment',
+                        'Shopping',
+                        'Groceries',
+                        'Tips',
+                        'Fees',
+                        'Tickets',
+                        'Gifts',
+                        'Attraction',
+                        'Other',
+                    ])
+                    ->placeholder('Select or type category')
                     ->maxLength(100),
                 TextInput::make('amount')
                     ->numeric()
