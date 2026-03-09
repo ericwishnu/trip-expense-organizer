@@ -19,6 +19,7 @@ class TripDayForm
                         name: 'trip',
                         titleAttribute: 'name',
                         modifyQueryUsing: fn ($query) => $query->where('user_id', auth()->id())
+                            ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()))
                     )
                     ->searchable()
                     ->preload()

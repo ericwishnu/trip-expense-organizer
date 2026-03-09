@@ -63,12 +63,24 @@ class TripSummary extends Page
                     ->map(fn ($expenses) => $expenses->sum('amount'))
                     ->sortKeys();
 
+                $expenses = $day->expenses
+                    ->map(function ($expense) use ($currencyResolver) {
+                        return [
+                            'title' => $expense->title,
+                            'category' => $expense->category,
+                            'amount' => $expense->amount,
+                            'currency' => $currencyResolver($expense),
+                            'spent_at' => $expense->spent_at,
+                        ];
+                    });
+
                 return [
                     'day_number' => $day->day_number,
                     'date' => $day->date,
                     'title' => $day->title,
                     'totals' => $totals,
                     'count' => $day->expenses->count(),
+                    'expenses' => $expenses,
                 ];
             });
 

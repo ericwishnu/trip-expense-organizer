@@ -19,7 +19,10 @@ class ExpenseForm
                     ->relationship(
                         name: 'tripDay',
                         titleAttribute: 'id',
-                        modifyQueryUsing: fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('user_id', auth()->id()))
+                        modifyQueryUsing: fn ($query) => $query->whereHas('trip', function ($tripQuery) {
+                            $tripQuery->where('user_id', auth()->id())
+                                ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+                        })
                     )
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->trip->name . ' - Day ' . $record->day_number)
                     ->searchable()

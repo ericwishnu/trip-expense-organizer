@@ -43,7 +43,10 @@ class ExpenseResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('tripDay.trip', fn (Builder $query) => $query->where('user_id', auth()->id()));
+            ->whereHas('tripDay.trip', function (Builder $query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn (Builder $collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            });
     }
 
     public static function getPages(): array

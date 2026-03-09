@@ -15,7 +15,10 @@ class LatestTripCategoryChart extends ChartWidget
     public function mount(): void
     {
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->latest('created_at')
             ->with(['days.expenses'])
             ->first();
@@ -40,7 +43,10 @@ class LatestTripCategoryChart extends ChartWidget
     protected function getFilters(): ?array
     {
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->latest('created_at')
             ->with(['days.expenses'])
             ->first();
@@ -64,7 +70,10 @@ class LatestTripCategoryChart extends ChartWidget
     public static function canView(): bool
     {
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->latest('created_at')
             ->with(['days.expenses'])
             ->first();
@@ -83,7 +92,10 @@ class LatestTripCategoryChart extends ChartWidget
     protected function getData(): array
     {
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->latest('created_at')
             ->with(['days.expenses'])
             ->first();

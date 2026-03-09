@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Trip extends Model
@@ -36,5 +37,46 @@ class Trip extends Model
     public function days(): HasMany
     {
         return $this->hasMany(TripDay::class);
+    }
+
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function getRoleForUser(User $user): ?string
+    {
+        if ($this->user_id === $user->id) {
+            return 'owner';
+        }
+
+        $collaborator = $this->collaborators
+            ->firstWhere('id', $user->id);
+
+        return $collaborator?->pivot?->role;
+    }
+
+    public function isCollaborator(User $user): bool
+    {
+        return $this->getRoleForUser($user) !== null;
+    }
+
+    public function allowsEdit(User $user): bool
+    {
+        $role = $this->getRoleForUser($user);
+
+        return in_array($role, ['owner', 'editor'], true);
+    }
+
+    public function invites(): HasMany
+    {
+        return $this->hasMany(TripInvite::class);
+    }
+
+    public function shareLinks(): HasMany
+    {
+        return $this->hasMany(TripShareLink::class);
     }
 }

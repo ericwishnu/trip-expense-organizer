@@ -69,6 +69,26 @@
                                     {{ $day['title'] ?? '—' }}
                                 </p>
                                 <p class="text-xs text-gray-500">Expenses: {{ $day['count'] }}</p>
+                                @if (($day['expenses'] ?? collect())->isNotEmpty())
+                                    <details class="mt-2">
+                                        <summary class="cursor-pointer text-xs text-amber-600 dark:text-amber-400">View expenses</summary>
+                                        <ul class="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-300">
+                                            @foreach ($day['expenses'] as $expense)
+                                                <li class="flex items-start justify-between gap-2">
+                                                    <span>
+                                                        {{ $expense['title'] }}
+                                                        @if (! empty($expense['category']))
+                                                            <span class="text-gray-400">· {{ $expense['category'] }}</span>
+                                                        @endif
+                                                    </span>
+                                                    <span class="font-semibold text-gray-900 dark:text-gray-100">
+                                                        {{ $expense['currency'] }} {{ number_format($expense['amount'], 2) }}
+                                                    </span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </details>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -112,7 +132,29 @@
                                     </td>
                                     <td
                                         class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 border-b border-r border-gray-200 dark:border-gray-700">
-                                        {{ $day['title'] ?? '—' }}
+                                        <div class="space-y-2">
+                                            <div>{{ $day['title'] ?? '—' }}</div>
+                                            @if (($day['expenses'] ?? collect())->isNotEmpty())
+                                                <details>
+                                                    <summary class="cursor-pointer text-xs text-amber-600 dark:text-amber-400">View expenses</summary>
+                                                    <ul class="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-300">
+                                                        @foreach ($day['expenses'] as $expense)
+                                                            <li class="flex items-start justify-between gap-2">
+                                                                <span>
+                                                                    {{ $expense['title'] }}
+                                                                    @if (! empty($expense['category']))
+                                                                        <span class="text-gray-400">· {{ $expense['category'] }}</span>
+                                                                    @endif
+                                                                </span>
+                                                                <span class="font-semibold text-gray-900 dark:text-gray-100">
+                                                                    {{ $expense['currency'] }} {{ number_format($expense['amount'], 2) }}
+                                                                </span>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </details>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td
                                         class="px-4 py-3 text-right text-sm text-gray-600 dark:text-gray-300 border-b border-r border-gray-200 dark:border-gray-700">

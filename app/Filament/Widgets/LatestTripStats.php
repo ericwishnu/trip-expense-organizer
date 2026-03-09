@@ -12,7 +12,10 @@ class LatestTripStats extends StatsOverviewWidget
     protected function getStats(): array
     {
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->latest('created_at')
             ->with(['days.expenses'])
             ->first();

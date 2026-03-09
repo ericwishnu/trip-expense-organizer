@@ -7,6 +7,9 @@ use App\Filament\Resources\Trips\Pages\EditTrip;
 use App\Filament\Resources\Trips\Pages\ListTrips;
 use App\Filament\Resources\Trips\Pages\TripSummary;
 use App\Filament\Resources\Trips\RelationManagers\TripDaysRelationManager;
+use App\Filament\Resources\Trips\RelationManagers\TripInvitesRelationManager;
+use App\Filament\Resources\Trips\RelationManagers\TripCollaboratorsRelationManager;
+use App\Filament\Resources\Trips\RelationManagers\TripShareLinksRelationManager;
 use App\Filament\Resources\Trips\Schemas\TripForm;
 use App\Filament\Resources\Trips\Tables\TripsTable;
 use App\Models\Trip;
@@ -39,13 +42,19 @@ class TripResource extends Resource
     {
         return [
             TripDaysRelationManager::class,
+            TripCollaboratorsRelationManager::class,
+            TripInvitesRelationManager::class,
+            TripShareLinksRelationManager::class,
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('user_id', auth()->id());
+            ->where(function (Builder $query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn (Builder $collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            });
     }
 
     public static function getPages(): array

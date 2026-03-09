@@ -24,7 +24,10 @@ class TripCategoryChart extends ChartWidget
         }
 
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->find($this->recordId);
 
         if (! $trip) {
@@ -95,7 +98,10 @@ class TripCategoryChart extends ChartWidget
         }
 
         $trip = Trip::query()
-            ->where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhereHas('collaborators', fn ($collabQuery) => $collabQuery->where('users.id', auth()->id()));
+            })
             ->findOrFail($this->recordId);
 
         $trip->loadMissing(['days.expenses']);
