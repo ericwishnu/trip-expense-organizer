@@ -38,6 +38,7 @@ class ExpensesRelationManager extends RelationManager
                         'SGD' => 'SGD',
                         'RMB' => 'RMB',
                         'KIP' => 'KIP',
+                        'VND' => 'VND',
                     ])
                     ->default(fn (RelationManager $livewire) => $livewire->getOwnerRecord()?->trip?->currency ?? 'USD')
                     ->searchable(),

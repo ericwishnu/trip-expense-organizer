@@ -44,6 +44,7 @@ class ExpenseForm
                         'SGD' => 'SGD',
                         'RMB' => 'RMB',
                         'KIP' => 'KIP',
+                        'VND' => 'VND',
                     ])
                     ->default('USD')
                     ->searchable(),

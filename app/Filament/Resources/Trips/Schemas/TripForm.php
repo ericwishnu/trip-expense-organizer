@@ -34,6 +34,7 @@ class TripForm
                             'SGD' => 'SGD',
                             'RMB' => 'RMB',
                             'KIP' => 'KIP',
+                            'VND' => 'VND',
                         ])
                         ->default('USD')
                         ->required()
