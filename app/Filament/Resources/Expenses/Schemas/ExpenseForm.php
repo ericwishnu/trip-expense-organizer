@@ -7,8 +7,8 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class ExpenseForm
@@ -61,6 +61,7 @@ class ExpenseForm
                 TextInput::make('category')
                     ->datalist([
                         'F&B',
+                        'Flight',
                         'Transport',
                         'Accommodation',
                         'Activities',
