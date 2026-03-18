@@ -32,6 +32,8 @@ class TripForm
                             'USD' => 'USD',
                             'IDR' => 'IDR',
                             'SGD' => 'SGD',
+                            'THB' => 'THB',
+                            'MYR' => 'MYR',
                             'RMB' => 'RMB',
                             'KIP' => 'KIP',
                             'VND' => 'VND',
